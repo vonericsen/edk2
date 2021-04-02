@@ -22,7 +22,7 @@
 
 /**
   Selects a firmware configuration item for reading.
-  
+
   Following this call, any data read from this item will start from
   the beginning of the configuration item's data.
 
@@ -35,7 +35,7 @@ QemuFwCfgSelectItem (
   IN FIRMWARE_CONFIG_ITEM   QemuFwCfgItem
   )
 {
-  DEBUG ((EFI_D_INFO, "Select Item: 0x%x\n", (UINT16)(UINTN) QemuFwCfgItem));
+  DEBUG ((DEBUG_INFO, "Select Item: 0x%x\n", (UINT16)(UINTN) QemuFwCfgItem));
   IoWrite16 (FW_CFG_IO_SELECTOR, (UINT16)(UINTN) QemuFwCfgItem);
 }
 

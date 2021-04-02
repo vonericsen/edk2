@@ -2,7 +2,7 @@
 # Embedded Package
 #
 #
-# Copyright (c) 2007 - 2018, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2007 - 2021, Intel Corporation. All rights reserved.<BR>
 # Copyright (c) 2012-2015, ARM Ltd. All rights reserved.<BR>
 # Copyright (c) 2016, Linaro Ltd. All rights reserved.<BR>
 #
@@ -40,6 +40,9 @@
 # Library Class section - list of all Library Classes needed by this Platform.
 #
 ################################################################################
+
+!include MdePkg/MdeLibs.dsc.inc
+
 [LibraryClasses.common]
 #  DebugLib|MdePkg/Library/UefiDebugLibConOut/UefiDebugLibConOut.inf
   DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
@@ -102,6 +105,8 @@
 
   DxeServicesLib|MdePkg/Library/DxeServicesLib/DxeServicesLib.inf
   DtPlatformDtbLoaderLib|EmbeddedPkg/Library/DxeDtPlatformDtbLoaderLibDefault/DxeDtPlatformDtbLoaderLibDefault.inf
+
+  TimeBaseLib|EmbeddedPkg/Library/TimeBaseLib/TimeBaseLib.inf
 
 [LibraryClasses.common.DXE_DRIVER]
   PcdLib|MdePkg/Library/DxePcdLib/DxePcdLib.inf
@@ -225,10 +230,6 @@
 
   EmbeddedPkg/Universal/MmcDxe/MmcDxe.inf
 
-  # Drivers
-  EmbeddedPkg/Drivers/Lan9118Dxe/Lan9118Dxe.inf
-  EmbeddedPkg/Drivers/SataSiI3132Dxe/SataSiI3132Dxe.inf
-
   EmbeddedPkg/Library/AcpiLib/AcpiLib.inf
   EmbeddedPkg/Library/DebugAgentTimerLibNull/DebugAgentTimerLibNull.inf
   EmbeddedPkg/Library/FdtLib/FdtLib.inf
@@ -238,8 +239,10 @@
   EmbeddedPkg/Drivers/ConsolePrefDxe/ConsolePrefDxe.inf
   EmbeddedPkg/Drivers/DtPlatformDxe/DtPlatformDxe.inf
 
-[Components.ARM]
-  EmbeddedPkg/Drivers/Isp1761UsbDxe/Isp1761UsbDxe.inf
+  EmbeddedPkg/Drivers/NonCoherentIoMmuDxe/NonCoherentIoMmuDxe.inf {
+    <LibraryClasses>
+      DmaLib|EmbeddedPkg/Library/NonCoherentDmaLib/NonCoherentDmaLib.inf
+  }
 
 [Components.ARM, Components.AARCH64]
   EmbeddedPkg/Application/AndroidBoot/AndroidBootApp.inf

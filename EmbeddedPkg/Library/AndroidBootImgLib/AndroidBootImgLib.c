@@ -97,7 +97,7 @@ AndroidBootImgGetKernelInfo (
   ASSERT (IS_VALID_ANDROID_PAGE_SIZE (Header->PageSize));
 
   *KernelSize = Header->KernelSize;
-  *Kernel = BootImg + Header->PageSize;
+  *Kernel = (VOID *)((UINTN)BootImg + Header->PageSize);
   return EFI_SUCCESS;
 }
 
@@ -341,7 +341,7 @@ AndroidBootImgUpdateFdt (
 
   Status = AndroidBootImgSetProperty64 (UpdatedFdtBase, ChosenNode,
                                         "linux,initrd-end",
-                                        (UINTN)(RamdiskData + RamdiskSize));
+                                        (UINTN)RamdiskData + RamdiskSize);
   if (EFI_ERROR (Status)) {
     goto Fdt_Exit;
   }
@@ -441,6 +441,18 @@ AndroidBootImgBoot (
   Status = gBS->LoadImage (TRUE, gImageHandle,
                            (EFI_DEVICE_PATH *)&KernelDevicePath,
                            (VOID*)(UINTN)Kernel, KernelSize, &ImageHandle);
+  if (EFI_ERROR (Status)) {
+    //
+    // With EFI_SECURITY_VIOLATION retval, the Image was loaded and an ImageHandle was created
+    // with a valid EFI_LOADED_IMAGE_PROTOCOL, but the image can not be started right now.
+    // If the caller doesn't have the option to defer the execution of an image, we should
+    // unload image for the EFI_SECURITY_VIOLATION to avoid resource leak.
+    //
+    if (Status == EFI_SECURITY_VIOLATION) {
+      gBS->UnloadImage (ImageHandle);
+    }
+    return Status;
+  }
 
   // Set kernel arguments
   Status = gBS->HandleProtocol (ImageHandle, &gEfiLoadedImageProtocolGuid,

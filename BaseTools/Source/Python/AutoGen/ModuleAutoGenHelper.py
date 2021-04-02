@@ -236,6 +236,10 @@ class AutoGenInfo(object):
 #
 class WorkSpaceInfo(AutoGenInfo):
     def __init__(self,Workspace, MetaFile, Target, ToolChain, Arch):
+        if not hasattr(self, "_Init"):
+            self.do_init(Workspace, MetaFile, Target, ToolChain, Arch)
+            self._Init = True
+    def do_init(self,Workspace, MetaFile, Target, ToolChain, Arch):
         self._SrcTimeStamp = 0
         self.Db = BuildDB
         self.BuildDatabase = self.Db.BuildObject
@@ -244,10 +248,35 @@ class WorkSpaceInfo(AutoGenInfo):
         self.WorkspaceDir = Workspace
         self.ActivePlatform = MetaFile
         self.ArchList = Arch
+        self.AutoGenObjectList = []
+    @property
+    def BuildDir(self):
+        return self.AutoGenObjectList[0].BuildDir
 
+    @property
+    def Name(self):
+        return self.AutoGenObjectList[0].Platform.PlatformName
+
+    @property
+    def FlashDefinition(self):
+        return self.AutoGenObjectList[0].Platform.FlashDefinition
+    @property
+    def GenFdsCommandDict(self):
+        FdsCommandDict = self.AutoGenObjectList[0].DataPipe.Get("FdsCommandDict")
+        if FdsCommandDict:
+            return FdsCommandDict
+        return {}
+
+    @cached_property
+    def FvDir(self):
+        return os.path.join(self.BuildDir, TAB_FV_DIRECTORY)
 
 class PlatformInfo(AutoGenInfo):
     def __init__(self, Workspace, MetaFile, Target, ToolChain, Arch,DataPipe):
+        if not hasattr(self, "_Init"):
+            self.do_init(Workspace, MetaFile, Target, ToolChain, Arch,DataPipe)
+            self._Init = True
+    def do_init(self,Workspace, MetaFile, Target, ToolChain, Arch,DataPipe):
         self.Wa = Workspace
         self.WorkspaceDir = self.Wa.WorkspaceDir
         self.MetaFile = MetaFile
@@ -450,8 +479,9 @@ class PlatformInfo(AutoGenInfo):
                 SkuName : SkuInfoClass(SkuName, self.Platform.SkuIds[SkuName][0], '', '', '', '', '', ToPcd.DefaultValue)
             }
 
-    def ApplyPcdSetting(self, Module, Pcds, Library=""):
+    def ApplyPcdSetting(self, Ma, Pcds, Library=""):
         # for each PCD in module
+        Module=Ma.Module
         for Name, Guid in Pcds:
             PcdInModule = Pcds[Name, Guid]
             # find out the PCD setting in platform
@@ -478,9 +508,12 @@ class PlatformInfo(AutoGenInfo):
                                 )
 
         # override PCD settings with module specific setting
+        ModuleScopePcds = self.DataPipe.Get("MOL_PCDS")
         if Module in self.Platform.Modules:
             PlatformModule = self.Platform.Modules[str(Module)]
-            for Key  in PlatformModule.Pcds:
+            PCD_DATA = ModuleScopePcds.get(Ma.Guid,{})
+            mPcds = {(pcd.TokenCName,pcd.TokenSpaceGuidCName): pcd for pcd in PCD_DATA}
+            for Key  in mPcds:
                 if self.BuildOptionPcd:
                     for pcd in self.BuildOptionPcd:
                         (TokenSpaceGuidCName, TokenCName, FieldName, pcdvalue, _) = pcd
@@ -499,7 +532,7 @@ class PlatformInfo(AutoGenInfo):
                             Flag = True
                             break
                 if Flag:
-                    self._OverridePcd(ToPcd, PlatformModule.Pcds[Key], Module, Msg="DSC Components Module scoped PCD section", Library=Library)
+                    self._OverridePcd(ToPcd, mPcds[Key], Module, Msg="DSC Components Module scoped PCD section", Library=Library)
         # use PCD value to calculate the MaxDatumSize when it is not specified
         for Name, Guid in Pcds:
             Pcd = Pcds[Name, Guid]

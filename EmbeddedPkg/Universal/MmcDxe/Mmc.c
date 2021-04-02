@@ -216,7 +216,7 @@ MmcDriverBindingSupported (
   //
   Status = gBS->OpenProtocol (
                 Controller,
-                &gEfiMmcHostProtocolGuid,
+                &gEmbeddedMmcHostProtocolGuid,
                 (VOID **) &MmcHost,
                 This->DriverBindingHandle,
                 Controller,
@@ -234,7 +234,7 @@ MmcDriverBindingSupported (
   //
   gBS->CloseProtocol (
       Controller,
-      &gEfiMmcHostProtocolGuid,
+      &gEmbeddedMmcHostProtocolGuid,
       This->DriverBindingHandle,
       Controller
       );
@@ -275,7 +275,7 @@ MmcDriverBindingStart (
   //
   Status = gBS->OpenProtocol (
                 Controller,
-                &gEfiMmcHostProtocolGuid,
+                &gEmbeddedMmcHostProtocolGuid,
                 (VOID **) &MmcHost,
                 This->DriverBindingHandle,
                 Controller,
@@ -326,11 +326,12 @@ MmcDriverBindingStop (
     MmcHostInstance = MMC_HOST_INSTANCE_FROM_LINK(CurrentLink);
     ASSERT(MmcHostInstance != NULL);
 
-    // Close gEfiMmcHostProtocolGuid
+    // Close gEmbeddedMmcHostProtocolGuid
     Status = gBS->CloseProtocol (
                 Controller,
-                &gEfiMmcHostProtocolGuid,(VOID **) &MmcHostInstance->MmcHost,
-                This->DriverBindingHandle
+                &gEmbeddedMmcHostProtocolGuid,
+                This->DriverBindingHandle,
+                Controller
                 );
 
     // Remove MMC Host Instance from the pool

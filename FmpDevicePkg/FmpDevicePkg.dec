@@ -7,7 +7,7 @@
 # customized using libraries and PCDs.
 #
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.<BR>
-# Copyright (c) 2018 - 2019, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2018 - 2020, Intel Corporation. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -35,6 +35,19 @@
   #                  updates of a firmware image stored in a firmware device.
   FmpDeviceLib|Include/Library/FmpDeviceLib.h
 
+  ##  @libraryclass  Provides generic services to support capsule dependency
+  #                  expression evaluation.
+  FmpDependencyLib|Include/Library/FmpDependencyLib.h
+
+  ##  @libraryclass  Provides platform specific services to support dependency
+  #                  check during update of firmware image.
+  FmpDependencyCheckLib|Include/Library/FmpDependencyCheckLib.h
+
+  ##  @libraryclass  Provides firmware device specific services to support
+  #                  saving dependency to firmware device and getting dependency
+  #                  from firmware device.
+  FmpDependencyDeviceLib|Include/Library/FmpDependencyDeviceLib.h
+
 [LibraryClasses.Common.Private]
   ##  @libraryclass  Provides services to retrieve values from a capsule's FMP
   #                  Payload Header.  The structure is not included in the
@@ -50,12 +63,12 @@
 
 [Protocols.Common.Private]
   ## Capsule Update Policy Protocol
-  gEdkiiCapuleUpdatePolicyProtocolGuid = { 0x487784c5, 0x6299, 0x4ba6, { 0xb0, 0x96, 0x5c, 0xc5, 0x27, 0x7c, 0xf7, 0x57 } }
+  gEdkiiCapsuleUpdatePolicyProtocolGuid = { 0x487784c5, 0x6299, 0x4ba6, { 0xb0, 0x96, 0x5c, 0xc5, 0x27, 0x7c, 0xf7, 0x57 } }
 
 [PcdsFeatureFlag]
   ## Indicates if the Firmware Management Protocol supports access to
   #  to a firmware storage device.  If set to FALSE, then only GetImageInfo()
-  #  is supported.  This is used by FMP drivers that require the samllest
+  #  is supported.  This is used by FMP drivers that require the smallest
   #  possible Firmware Management Protocol implementation that supports
   #  advertising the updatable firmware device in the ESRT.<BR>
   #    TRUE  - All Firmware Management Protocol services supported.<BR>

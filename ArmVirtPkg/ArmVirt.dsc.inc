@@ -2,6 +2,7 @@
 #  Copyright (c) 2011-2015, ARM Limited. All rights reserved.
 #  Copyright (c) 2014, Linaro Limited. All rights reserved.
 #  Copyright (c) 2015 - 2018, Intel Corporation. All rights reserved.
+#  Copyright (c) Microsoft Corporation.
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -9,6 +10,21 @@
 
 [Defines]
   DEFINE DEBUG_PRINT_ERROR_LEVEL = 0x8000004F
+
+!if $(TARGET) != NOOPT
+  DEFINE FD_SIZE_IN_MB    = 2
+!else
+  DEFINE FD_SIZE_IN_MB    = 3
+!endif
+
+!if $(FD_SIZE_IN_MB) == 2
+  DEFINE FD_SIZE          = 0x200000
+  DEFINE FD_NUM_BLOCKS    = 0x200
+!endif
+!if $(FD_SIZE_IN_MB) == 3
+  DEFINE FD_SIZE          = 0x300000
+  DEFINE FD_NUM_BLOCKS    = 0x300
+!endif
 
 [BuildOptions.common.EDKII.DXE_CORE,BuildOptions.common.EDKII.DXE_DRIVER,BuildOptions.common.EDKII.UEFI_DRIVER,BuildOptions.common.EDKII.UEFI_APPLICATION]
   GCC:*_*_*_DLINK_FLAGS = -z common-page-size=0x1000
@@ -145,21 +161,22 @@
   OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLibCrypto.inf
 !endif
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
+  RngLib|MdePkg/Library/BaseRngLibTimerLib/BaseRngLibTimerLib.inf
 
   #
   # Secure Boot dependencies
   #
 !if $(SECURE_BOOT_ENABLE) == TRUE
-  TpmMeasurementLib|SecurityPkg/Library/DxeTpmMeasurementLib/DxeTpmMeasurementLib.inf
   AuthVariableLib|SecurityPkg/Library/AuthVariableLib/AuthVariableLib.inf
 
   # re-use the UserPhysicalPresent() dummy implementation from the ovmf tree
   PlatformSecureLib|OvmfPkg/Library/PlatformSecureLib/PlatformSecureLib.inf
 !else
-  TpmMeasurementLib|MdeModulePkg/Library/TpmMeasurementLibNull/TpmMeasurementLibNull.inf
   AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
 !endif
   VarCheckLib|MdeModulePkg/Library/VarCheckLib/VarCheckLib.inf
+  VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLib.inf
+  VariablePolicyHelperLib|MdeModulePkg/Library/VariablePolicyHelperLib/VariablePolicyHelperLib.inf
   UefiBootManagerLib|MdeModulePkg/Library/UefiBootManagerLib/UefiBootManagerLib.inf
 
   ReportStatusCodeLib|MdePkg/Library/BaseReportStatusCodeLibNull/BaseReportStatusCodeLibNull.inf
@@ -233,6 +250,7 @@
 !if $(TARGET) != RELEASE
   DebugLib|MdePkg/Library/DxeRuntimeDebugLibSerialPort/DxeRuntimeDebugLibSerialPort.inf
 !endif
+  VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLibRuntimeDxe.inf
 
 !if $(SECURE_BOOT_ENABLE) == TRUE
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/RuntimeCryptLib.inf
@@ -272,7 +290,7 @@
 [PcdsFixedAtBuild.common]
   gEfiMdePkgTokenSpaceGuid.PcdMaximumUnicodeStringLength|1000000
   gEfiMdePkgTokenSpaceGuid.PcdMaximumAsciiStringLength|1000000
-  gEfiMdePkgTokenSpaceGuid.PcdMaximumLinkedListLength|1000000
+  gEfiMdePkgTokenSpaceGuid.PcdMaximumLinkedListLength|0
   gEfiMdePkgTokenSpaceGuid.PcdSpinLockTimeout|10000000
   gEfiMdePkgTokenSpaceGuid.PcdUefiLibMaxPrintBufferSize|320
 
@@ -361,6 +379,14 @@
   # UEFI application (Shell Embedded Boot Loader)
   #
   ShellPkg/DynamicCommand/TftpDynamicCommand/TftpDynamicCommand.inf {
+    <PcdsFixedAtBuild>
+      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
+  }
+  ShellPkg/DynamicCommand/HttpDynamicCommand/HttpDynamicCommand.inf {
+    <PcdsFixedAtBuild>
+      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
+  }
+  OvmfPkg/LinuxInitrdDynamicShellCommand/LinuxInitrdDynamicShellCommand.inf {
     <PcdsFixedAtBuild>
       gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
   }

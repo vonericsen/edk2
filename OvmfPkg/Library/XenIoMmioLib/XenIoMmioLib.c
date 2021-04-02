@@ -88,7 +88,7 @@ XenIoMmioInstall (
   XenBusDevicePath = AllocateCopyPool (sizeof *XenBusDevicePath,
                        &mXenBusRootDevicePathTemplate);
   if (!XenBusDevicePath) {
-    DEBUG ((EFI_D_ERROR, "%a: Out of memory\n", __FUNCTION__));
+    DEBUG ((DEBUG_ERROR, "%a: Out of memory\n", __FUNCTION__));
     Status = EFI_OUT_OF_RESOURCES;
     goto FreeXenIo;
   }
@@ -102,8 +102,8 @@ XenIoMmioInstall (
     *Handle = OutHandle;
     return EFI_SUCCESS;
   }
-  
-  DEBUG ((EFI_D_ERROR, "%a: Failed to install the EFI_DEVICE_PATH and "
+
+  DEBUG ((DEBUG_ERROR, "%a: Failed to install the EFI_DEVICE_PATH and "
     "XENIO_PROTOCOL protocols on handle %p (Status == %r)\n",
     __FUNCTION__, OutHandle, Status));
 
